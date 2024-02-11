@@ -2,9 +2,6 @@
 
 #include "Entity.h"
 
-#include <vector>
-#include <map>
-
 typedef std::vector<std::shared_ptr<Entity>> EntityVec;
 typedef std::map<std::string, EntityVec>	 EntityMap;
 
@@ -17,14 +14,13 @@ class EntityManager
 	EntityMap	m_entityMap;
 	size_t		m_totalEntities = 0;
 
-	//void removeDeadEntities(EntityVec& vec);    <---- this should be here
+	void removeDeadEntities(EntityVec& vec);
 
 public:
 	
 	EntityManager();
 	
 	void update();
-	void removeDeadEntities(EntityVec& vec);
 
 	std::shared_ptr<Entity> addEntity(const std::string& tag);
 

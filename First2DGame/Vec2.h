@@ -15,7 +15,6 @@ public:
 
 
 	Vec2 operator / (const float scalar);
-	Vec2 operator + (const float scalar);
 	Vec2 operator * (const float scalar);
 	Vec2 operator - (const Vec2& rhs);
 	Vec2 operator * (const Vec2& rhs);
@@ -23,8 +22,4 @@ public:
 
 	void operator /= (const float scalar);
 	void operator *= (const float scalar);
-	void operator += (const float scalar);
-	void operator -= (const float scalar);
-
-	void operator += (const Vec2& rhs);
 };
