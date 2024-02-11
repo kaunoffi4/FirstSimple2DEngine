@@ -15,27 +15,32 @@ bool Vec2::operator == (const Vec2& rhs) const
 	return (x == rhs.x && y == rhs.y);
 }
 
-Vec2 Vec2::operator/(const float scalar)
+Vec2 Vec2::operator / (const float scalar)
 {
 	return Vec2(x/scalar, y/scalar);
 }
 
-Vec2 Vec2::operator*(const float scalar)
+Vec2 Vec2::operator+(const float scalar)
+{
+	return Vec2(x + scalar, y + scalar);
+}
+
+Vec2 Vec2::operator * (const float scalar)
 {
 	return Vec2(x * scalar, y * scalar);
 }
 
-Vec2 Vec2::operator- (const Vec2& rhs)
+Vec2 Vec2::operator - (const Vec2& rhs)
 {
 	return Vec2(x - rhs.x, y - rhs.y);
 }
 
-Vec2 Vec2::operator*(const Vec2& rhs)
+Vec2 Vec2::operator * (const Vec2& rhs)
 {
 	return Vec2(x * rhs.x, y * rhs.y);
 }
 
-Vec2 Vec2::operator/(const Vec2& rhs)
+Vec2 Vec2::operator / (const Vec2& rhs)
 {
 	return Vec2(x / rhs.x, y / rhs.y);
 }
@@ -46,8 +51,26 @@ void Vec2::operator /= (const float scalar)
 	y = y / scalar;
 }
 
-void Vec2::operator*= (const float scalar)
+void Vec2::operator *= (const float scalar)
 {
 	x = x * scalar;
 	y = y * scalar;
+}
+
+void Vec2::operator += (const float scalar)
+{
+	x = x + scalar;
+	y = y + scalar;
+}
+
+void Vec2::operator -= (const float scalar)
+{
+	x = x - scalar;
+	y = y - scalar;
+}
+
+void Vec2::operator += (const Vec2& rhs)
+{
+	x = x + rhs.x;
+	y = y + rhs.y;
 }
