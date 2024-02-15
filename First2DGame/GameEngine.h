@@ -5,7 +5,7 @@
 //
 //#include <SFML/Graphics.hpp>
 
-// CHANGE IS HERE
+// CHANGE DELETED
 
 #include "Scene.h";
 #include "Assets.h";
