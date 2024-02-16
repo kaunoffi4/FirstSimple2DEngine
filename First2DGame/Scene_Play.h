@@ -7,7 +7,7 @@
 #include "EntityManager.h"
 
 
-const float limit = 50;
+const float limit = 0.25;
 static float jumpTime = 0;
 
 class Scene_Play : public Scene

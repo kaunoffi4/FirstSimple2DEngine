@@ -123,7 +123,7 @@ void Scene_Play::spawnPlayer()
 	//here is a sample player entity which you can use to construct other entities
 	m_player = m_entityManager.addEntity("Player");
 	m_player->addComponent<CAnimation>(m_game->assets().getAnimation("Stand"), true);
-	m_player->addComponent<CTransform>(gridToMidPixel(m_playerConfig.GX, m_playerConfig.GY, m_player), Vec2(m_playerConfig.SX, m_playerConfig.SY), Vec2(1.5, 1.5), 0);
+	m_player->addComponent<CTransform>(gridToMidPixel(m_playerConfig.GX, m_playerConfig.GY, m_player), Vec2(0, 0), Vec2(1.5, 1.5), 0);
 	m_player->addComponent<CBoundingBox>(Vec2(m_playerConfig.CW, m_playerConfig.CH));
 	m_player->addComponent<CGravity>(m_playerConfig.G);
 
@@ -171,20 +171,23 @@ void Scene_Play::sMovement()
 	if (m_player->getComponent<CInput>().up) 
 	{
 
-		jumpTime += m_game->getDeltaTime().asMilliseconds();
+		jumpTime += m_game->getDeltaTime().asSeconds();
 		if(jumpTime <= limit)
-			playerVelocity.y = -m_playerConfig.SY;  // sort out
+			playerVelocity.y = -m_playerConfig.SY * m_game->getDeltaTime().asSeconds();  // sort out
 	}
 
 	if (m_player->getComponent<CInput>().right)
 	{
-		playerVelocity.x = m_playerConfig.SX;
+		playerVelocity.x = m_playerConfig.SX * m_game->getDeltaTime().asSeconds();
 	}
 
 	if (m_player->getComponent<CInput>().left)
 	{
-		playerVelocity.x = -m_playerConfig.SX;
+		playerVelocity.x = -m_playerConfig.SX * m_game->getDeltaTime().asSeconds();
 	}
+
+
+	//std::cout << "deltaTime: " << m_game->getDeltaTime().asSeconds() << std::endl;
 
 	m_player->getComponent<CTransform>().velocity = playerVelocity;
 
@@ -194,7 +197,7 @@ void Scene_Play::sMovement()
 	{
 		if (e->hasComponent<CGravity>())
 		{
-			e->getComponent<CTransform>().velocity.y += e->getComponent<CGravity>().gravity;   
+			e->getComponent<CTransform>().velocity.y += e->getComponent<CGravity>().gravity * m_game->getDeltaTime().asSeconds();
 
 			if (e->getComponent<CTransform>().velocity.y > m_playerConfig.SM)
 			{
@@ -205,7 +208,7 @@ void Scene_Play::sMovement()
 			//set its speed in that direction to the maxSpeed
 		}
 		e->getComponent<CTransform>().prevPos = e->getComponent<CTransform>().pos;
-		e->getComponent<CTransform>().pos += e->getComponent<CTransform>().velocity * m_game->getDeltaTime().asMilliseconds(); // sort out
+		e->getComponent<CTransform>().pos += e->getComponent<CTransform>().velocity; 
 	}
 }
 
@@ -227,18 +230,21 @@ void Scene_Play::sCollision()
 	//TODO: don't let the player walk off the left side of the map
 
 
-	if (m_player->getComponent<CTransform>().pos.y - m_player->getComponent<CBoundingBox>().halfSize.y > m_game->window().getSize().y)
+
+	auto& playerPos = m_player->getComponent<CTransform>().pos;
+
+	if (playerPos.y - m_player->getComponent<CBoundingBox>().halfSize.y > m_game->window().getSize().y)
 	{
-		m_player->getComponent<CTransform>().pos = Vec2(gridToMidPixel(m_playerConfig.GX, m_playerConfig.GY, m_player));
+		playerPos = Vec2(gridToMidPixel(m_playerConfig.GX, m_playerConfig.GY, m_player));
 		return;
 	}
 
-	if (m_player->getComponent<CTransform>().pos.x - m_player->getComponent<CBoundingBox>().halfSize.x <= 0)
+	if (playerPos.x - m_player->getComponent<CBoundingBox>().halfSize.x <= 0)
 	{
-		m_player->getComponent<CTransform>().pos.x = m_player->getComponent<CBoundingBox>().halfSize.x + 1;
+		playerPos.x = m_player->getComponent<CBoundingBox>().halfSize.x + 1;
 	}
 
-	Physics p; // may be we could do better
+	Physics p; // may be we can do it better
 	bool flag = false;
 	for (std::shared_ptr<Entity> tile : m_entityManager.getEntities("Tile"))
 	{
@@ -264,7 +270,8 @@ void Scene_Play::sCollision()
 					else
 					{
 						m_player->getComponent<CTransform>().pos.y += collision.y;
-						m_player->getComponent<CState>().state = "AIR";
+						m_player->getComponent<CState>().state = "FALLING";
+						m_player->getComponent<CInput>().up = false;
 					}
 				}
 
@@ -284,7 +291,7 @@ void Scene_Play::sCollision()
 	}
 	if (!flag)
 	{
-		m_player->getComponent<CState>().state = "AIR";
+		m_player->getComponent<CState>().state = m_player->getComponent<CTransform>().velocity.y >= 0 ? "FALLING" : "JUMP";
 		m_player->getComponent<CInput>().canJump = false;
 	}
 
@@ -376,6 +383,15 @@ void Scene_Play::sAnimation()
 		}
 	}
 
+	if (m_player->getComponent<CState>().state == "FALLING")
+	{
+		m_player->addComponent<CAnimation>(m_game->assets().getAnimation("Falling"), true);
+	}
+	else if(m_player->getComponent<CState>().state == "JUMP")
+	{
+		m_player->addComponent<CAnimation>(m_game->assets().getAnimation("Jump"), true);
+	}
+
 	for (std::shared_ptr<Entity> e : m_entityManager.getEntities())
 	{
 		if (e->hasComponent<CAnimation>())
@@ -384,7 +400,6 @@ void Scene_Play::sAnimation()
 		}
 	}
 
-	//TRY to get rid of equal signs in if statements
 	if ((m_player->getComponent<CTransform>().velocity.x < 0 && m_player->getComponent<CTransform>().scale.x > 0)
 	  || (m_player->getComponent<CTransform>().velocity.x > 0 && m_player->getComponent<CTransform>().scale.x < 0))
 	{
