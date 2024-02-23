@@ -40,11 +40,6 @@ void Scene_Play::init(const std::string& levelPath)
 
 Vec2 Scene_Play::gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity> entity)
 {
-	//TODO: This function takes in a grid (x,y) pos and an Entity 
-	// Return a Vec2 indicating where the CENTER pos of the entity should be
-	// You must use the Entity's Animation size to pos it correctly 
-	// The size of the grid width and height is stored in m_gridSize 
-	// The bottom-left corner of the Animation should align with the bottom left of the grid cell
 	
 	int currYPoint = (m_game->window().getSize().y - m_gridSize.y) - (gridY * m_gridSize.y);
 	return Vec2((gridX * m_gridSize.x) + (entity->getComponent<CAnimation>().animation.getSize().x / 2)
@@ -53,14 +48,8 @@ Vec2 Scene_Play::gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity
 
 void Scene_Play::loadLevel(const std::string& filename)
 {
-	//reset the entity manager every time we load a level 
-	m_entityManager = EntityManager();
-	
-	//TODO: read in the level file and add the appropriate entities
-	//		use the PlayerConfig struct m_playerConfig to store player properties
-	
-	//NOTE: all the code below is sample code which shows you how to set up and use entities with the new syntax, it shoud be removed
 
+	m_entityManager = EntityManager();
 
 
 	std::ifstream myfile(filename);
@@ -97,43 +86,17 @@ void Scene_Play::loadLevel(const std::string& filename)
 	spawnPlayer();
 
 
-
-	//some sample entities
-	//auto brick = m_entityManager.addEntity("tile");
-	//IMPORTANT: always add the CAnimation component first so that gridToMidPixel can compute correctly
-	//brick->addComponent<CAnimation>(m_game->assets().getAnimation("Brick"), true);
-	//brick->addComponent<CTransform>(Vec2(96, 480), Vec2(0, 0), Vec2(2, 2), 0);
-	//NOTE: you final code should position the entity with the grid x, y position read from the file:
-
-	/*if (brick->getComponent<CAnimation>().animation.getName() == "Brick")
-	{
-		std::cout << "This could be a good way of identifying if a tile is a brick!\n";
-	}*/
-	
-
-
-	//NOTE: THIS IS INCREDIBLY IMPORTANT PLEASE READ THIS EXAMPLE
-	//		Components are now returned as reference rather than pointers
-	//		if you do not specify a reference variable type, it will COPY the component
-
-	}
-
 void Scene_Play::spawnPlayer()
 {
-	//here is a sample player entity which you can use to construct other entities
 	m_player = m_entityManager.addEntity("Player");
 	m_player->addComponent<CAnimation>(m_game->assets().getAnimation("Stand"), true);
 	m_player->addComponent<CTransform>(gridToMidPixel(m_playerConfig.GX, m_playerConfig.GY, m_player), Vec2(0, 0), Vec2(1.5, 1.5), 0);
 	m_player->addComponent<CBoundingBox>(Vec2(m_playerConfig.CW, m_playerConfig.CH));
 	m_player->addComponent<CGravity>(m_playerConfig.G);
-
-	//TODO: be sure to add the remaining components to the player 
 }
 
 void Scene_Play::spawnBullet(std::shared_ptr<Entity> entity)
 {
-	//TODO: this should spawn a bullet at the given entity, going in the direction the entity is facing
-
 	auto bullet = m_entityManager.addEntity("Bullet");
 	bullet->addComponent<CShape>(8, 32, sf::Color(255, 255, 255), sf::Color::White, 1);
 	float xVelocity = m_player->getComponent<CAnimation>().animation.getSprite().getScale().x < 0 ? -1 : 1;
@@ -145,7 +108,6 @@ void Scene_Play::update()
 {
 	m_entityManager.update();
 
-	//TODO: implement pause functionality
 
 	//sLifeSpan();
 	sMovement();
@@ -157,13 +119,6 @@ void Scene_Play::update()
 
 void Scene_Play::sMovement()
 {
-	//TODO: implement player movement / jumping based on its CInput component
-	//		implement gravity's effect on the player
-	//		implement the maximum player speed in both X and Y directions
-	//		NOTE: setting an entity's scale.x to -1/1 will make it face to the left/right
-
-
-	//player part
 
 	Vec2 playerVelocity(0, m_player->getComponent<CTransform>().velocity.y);
 
@@ -204,8 +159,6 @@ void Scene_Play::sMovement()
 				e->getComponent<CTransform>().velocity.y = m_playerConfig.SM;
 			}
 
-			//check if the player is moving faster than maxSpeed in any direction
-			//set its speed in that direction to the maxSpeed
 		}
 		e->getComponent<CTransform>().prevPos = e->getComponent<CTransform>().pos;
 		e->getComponent<CTransform>().pos += e->getComponent<CTransform>().velocity; 
@@ -219,17 +172,6 @@ void Scene_Play::sLifeSpan()
 
 void Scene_Play::sCollision()
 {
-	//TODO: implement Physics::GetOverlap() func, use it inside this function
-	//TODO: implement bullet / tile collision
-	//		destroy the tile if it has a Brick animation
-	//TODO: implement player / tile collisions and resolutions 
-	//		update the CState component of the player to store whether 
-	//		it is currently on the ground or in the air. This will be 
-	//		used in the Animation system
-	//TODO: check to see if the player has fallen down a hole (y > height())
-	//TODO: don't let the player walk off the left side of the map
-
-
 
 	auto& playerPos = m_player->getComponent<CTransform>().pos;
 
@@ -365,11 +307,6 @@ void Scene_Play::sDoAction(const Action& action)
 
 void Scene_Play::sAnimation()
 {
-	//TODO: complete the animation class code first
-
-	//TODO: set the animation of the player based on its CState component
-	//TODO: for each entity with an animation, call entity->getComponent<CAnimation>().animation.update()
-	//		if the animation is not repeated, and it has ended, destroy the entity
 
 	if (m_player->getComponent<CState>().state == "GROUND")
 	{
@@ -417,11 +354,9 @@ void Scene_Play::onEnd()
 
 void Scene_Play::sRender()
 {
-	//color the background darker so you know that the game is paused
 	if (!m_paused) { m_game->window().clear(sf::Color(100, 100, 255)); }
 	else { m_game->window().clear(sf::Color(50, 50, 150)); }
 
-	//set the viewport of the window to be centered on the player if it's far enough right
 	auto& pPos = m_player->getComponent<CTransform>().pos;
 	float windowCenterX = std::max(m_game->window().getSize().x / 2.0f, pPos.x);
 	sf::View view = m_game->window().getView();
